@@ -28,8 +28,8 @@ install.sh
 ## Install
 
 ```bash
-git clone <your-repo>
-cd <repo>
+git clone https://github.com/grechka731/dayang.git
+cd dayang
 bash install.sh
 ```
 
