@@ -9,12 +9,13 @@ sudo pacman -S --noconfirm --needed base-devel git
 
 if ! command -v yay &> /dev/null; then
     echo "[INFO] Installing yay..."
+    ORIG_DIR="$(pwd)"
     cd /tmp
     rm -rf yay
     git clone https://aur.archlinux.org/yay.git
     cd yay
     makepkg -si --noconfirm
-    cd -
+    cd "$ORIG_DIR"
 else
     echo "[INFO] yay already installed."
 fi
@@ -43,9 +44,7 @@ done < "$PACKAGE_FILE"
 
 echo "[PROCESS] Copying configs..."
 mkdir -p "$HOME/.config"
-if [ -d "config" ]; then
-    cp -r config/* "$HOME/.config/"
-fi
+[ -d "config" ] && cp -r config/* "$HOME/.config/"
 
 echo "[PROCESS] Making scripts executable..."
 chmod +x "$HOME/.config/scripts/"*.sh 2>/dev/null
@@ -70,14 +69,14 @@ bind = SUPER, Q,      killactive
 bind = SUPER, M,      exit
 bind = SUPER, F,      fullscreen
 
-bind = , Print,       exec, ~/.config/scripts/screenshot.sh area
-bind = SHIFT, Print,  exec, ~/.config/scripts/screenshot.sh full
-bind = SUPER, Print,  exec, ~/.config/scripts/screenshot.sh window
+bind = , Print,      exec, ~/.config/scripts/screenshot.sh area
+bind = SHIFT, Print, exec, ~/.config/scripts/screenshot.sh full
+bind = SUPER, Print, exec, ~/.config/scripts/screenshot.sh window
 
-bind = SUPER, left,   movefocus, l
-bind = SUPER, right,  movefocus, r
-bind = SUPER, up,     movefocus, u
-bind = SUPER, down,   movefocus, d
+bind = SUPER, left,  movefocus, l
+bind = SUPER, right, movefocus, r
+bind = SUPER, up,    movefocus, u
+bind = SUPER, down,  movefocus, d
 
 bind = SUPER, 1, workspace, 1
 bind = SUPER, 2, workspace, 2
@@ -135,11 +134,11 @@ decoration {
 animations {
     enabled = true
     bezier = myBezier, 0.05, 0.9, 0.1, 1.05
-    animation = windows,     1, 5,  myBezier
-    animation = windowsOut,  1, 4,  default, popin 80%
-    animation = border,      1, 8,  default
-    animation = fade,        1, 6,  default
-    animation = workspaces,  1, 5,  default
+    animation = windows,    1, 5, myBezier
+    animation = windowsOut, 1, 4, default, popin 80%
+    animation = border,     1, 8, default
+    animation = fade,       1, 6, default
+    animation = workspaces, 1, 5, default
 }
 
 dwindle {
@@ -167,12 +166,10 @@ windowrule = float, title:swappy
 EOF
 
 echo "[PROCESS] Setting up Rust..."
-if command -v rustup &> /dev/null; then
-    rustup default stable
-fi
+command -v rustup &> /dev/null && rustup default stable
 
 echo ""
 echo "[SUCCESS] All done!"
 echo ""
-echo "  Put wallpapers into ~/Pictures/Wallpapers/ then start Hyprland:"
-echo "  Hyprland"
+echo "  1. Put wallpapers into ~/Pictures/Wallpapers/"
+echo "  2. Run: Hyprland"
