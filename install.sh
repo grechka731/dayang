@@ -4,7 +4,6 @@ set -e
 
 echo "[PROCESS] Initializing system update..."
 sudo pacman-key --init
-sudo pacman-key --populate archlinux artix
 sudo pacman -Syyu --noconfirm
 
 echo "[PROCESS] Installing base-devel and git..."
