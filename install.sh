@@ -2,6 +2,7 @@
 
 echo "[PROCESS] Initializing system update..."
 sudo pacman-key --init
+sudo pacman-key --populate artix
 sudo pacman -Syyu --noconfirm
 
 echo "[PROCESS] Installing base-devel and git..."
@@ -55,7 +56,7 @@ mkdir -p "$HOME/Pictures/Wallpapers"
 
 echo "[PROCESS] Writing hyprland.conf..."
 mkdir -p "$HOME/.config/hypr"
-cat > "$HOME/.config/hypr/hyprland.conf" << 'EOF'
+cat > "$HOME/.config/hypr/hyprland.conf" << 'HYPR'
 exec-once = ~/.config/scripts/wallpaper.sh init
 exec-once = waybar
 exec-once = mako
@@ -126,9 +127,6 @@ decoration {
         passes = 2
         new_optimizations = true
     }
-    drop_shadow = true
-    shadow_range = 8
-    shadow_color = rgba(1a101688)
 }
 
 animations {
@@ -142,8 +140,7 @@ animations {
 }
 
 dwindle {
-    pseudotile = true
-    preserve_split = true
+    force_split = 2
 }
 
 input {
@@ -163,7 +160,7 @@ misc {
 windowrule = float, class:pavucontrol
 windowrule = float, class:nm-connection-editor
 windowrule = float, title:swappy
-EOF
+HYPR
 
 echo "[PROCESS] Setting up Rust..."
 command -v rustup &> /dev/null && rustup default stable
@@ -172,4 +169,4 @@ echo ""
 echo "[SUCCESS] All done!"
 echo ""
 echo "  1. Put wallpapers into ~/Pictures/Wallpapers/"
-echo "  2. Run: Hyprland"
+echo "  2. Run: export XDG_RUNTIME_DIR=/run/user/\$(id -u) && Hyprland"
