@@ -1,0 +1,55 @@
+# ==========================================
+# Games & Chat
+# ==========================================
+p:steam
+p:discord
+
+# ==========================================
+# Dev tools (C++, Rust, Go, Python, Zig)
+# ==========================================
+p:gcc
+p:make
+p:cmake
+y:xmake
+p:rustup
+p:go
+p:python
+p:python-pip
+p:zig
+
+# ==========================================
+# Browser & Terminal
+# ==========================================
+p:firefox
+p:kitty
+
+# ==========================================
+# Hyprland & WM utilities
+# ==========================================
+p:hyprland
+p:waybar
+p:swww
+p:rofi-wayland
+p:mako
+p:wl-clipboard
+p:pavucontrol
+p:brightnessctl
+p:network-manager-applet
+p:wlogout
+
+# ==========================================
+# Screenshots
+# ==========================================
+p:grim
+p:slurp
+p:jq
+y:swappy
+
+# ==========================================
+# Fonts & Icons
+# ==========================================
+p:ttf-jetbrains-mono-nerd
+p:noto-fonts-emoji
+p:papirus-icon-theme
+p:nwg-look
+p:arc-gtk-theme

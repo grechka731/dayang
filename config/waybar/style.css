@@ -1,0 +1,289 @@
+* {
+    --bg:                 #1a1016;
+    --bg-alt:             #130b0e;
+    --bg-surface:         #221520;
+    --bg-hover:           #2e1e28;
+    --fg:                 #f0e6e6;
+    --fg-dim:             #cdd6f4;
+    --fg-muted:           #6c7086;
+    --accent-green:       #4e6e4e;
+    --accent-rose:        #8e4e5e;
+    --accent-rose-bright: #ac6e7e;
+    --accent-blue:        #6e8eae;
+    --accent-mauve:       #8e6e8e;
+    --warning:            #aead8e;
+    --critical:           #ac6e7e;
+    --border:             #3e2e34;
+    --radius:             6px;
+
+    font-family:    "JetBrainsMono Nerd Font", monospace;
+    font-size:      12px;
+    font-weight:    400;
+    border:         none;
+    border-radius:  0;
+    min-height:     0;
+    margin:         0;
+    padding:        0;
+}
+
+window#waybar {
+    background-color: alpha(#1a1016, 0.92);
+    border-bottom:    1px solid var(--border);
+    color:            var(--fg);
+    transition:       background-color 0.3s ease;
+}
+
+window#waybar.hidden {
+    opacity: 0.3;
+}
+
+.modules-left,
+.modules-center,
+.modules-right {
+    background: transparent;
+}
+
+#workspaces,
+#window,
+#clock,
+#mpris,
+#pulseaudio,
+#network,
+#cpu,
+#memory,
+#temperature,
+#battery,
+#tray,
+#custom-screenshot,
+#custom-power {
+    background-color: var(--bg-surface);
+    color:            var(--fg);
+    border-radius:    var(--radius);
+    border:           1px solid var(--border);
+    padding:          2px 10px;
+    margin:           4px 2px;
+    transition:       all 0.2s ease;
+}
+
+#pulseaudio:hover,
+#network:hover,
+#cpu:hover,
+#memory:hover,
+#temperature:hover,
+#battery:hover,
+#clock:hover,
+#mpris:hover,
+#custom-screenshot:hover {
+    background-color: var(--bg-hover);
+    border-color:     var(--accent-green);
+    color:            var(--fg);
+}
+
+#workspaces {
+    padding:          2px 4px;
+    background-color: var(--bg-surface);
+}
+
+#workspaces button {
+    background:    transparent;
+    color:         var(--fg-muted);
+    border:        none;
+    border-radius: 4px;
+    padding:       2px 6px;
+    margin:        0 1px;
+    min-width:     22px;
+    transition:    all 0.2s ease;
+}
+
+#workspaces button:hover {
+    background-color: var(--bg-hover);
+    color:            var(--fg-dim);
+    border-bottom:    2px solid var(--accent-green);
+}
+
+#workspaces button.active {
+    background-color: var(--bg-hover);
+    color:            var(--fg);
+    border-bottom:    2px solid var(--accent-green);
+    font-weight:      700;
+}
+
+#workspaces button.urgent {
+    background-color: alpha(#ac6e7e, 0.15);
+    color:            var(--critical);
+    border-bottom:    2px solid var(--critical);
+}
+
+#window {
+    color:            var(--fg-muted);
+    font-style:       italic;
+    background-color: transparent;
+    border-color:     transparent;
+    letter-spacing:   0.02em;
+}
+
+#window:empty {
+    background: transparent;
+    border:     none;
+}
+
+#clock {
+    color:            var(--fg);
+    font-weight:      600;
+    font-size:        13px;
+    background-color: var(--bg-surface);
+    border-color:     var(--accent-green);
+    letter-spacing:   0.03em;
+    padding:          2px 16px;
+}
+
+#mpris {
+    color:        var(--accent-mauve);
+    border-color: alpha(#8e6e8e, 0.4);
+    max-width:    220px;
+}
+
+#mpris.paused {
+    color:      var(--fg-muted);
+    font-style: italic;
+}
+
+#pulseaudio {
+    color:        var(--accent-blue);
+    border-color: alpha(#6e8eae, 0.4);
+}
+
+#pulseaudio.muted {
+    color:        var(--fg-muted);
+    border-color: var(--border);
+}
+
+#network {
+    color:        var(--accent-green);
+    border-color: alpha(#4e6e4e, 0.4);
+}
+
+#network.disconnected {
+    color:        var(--fg-muted);
+    border-color: var(--border);
+}
+
+#network.linked {
+    color: var(--warning);
+}
+
+#cpu {
+    color:        var(--fg-dim);
+    border-color: alpha(#cdd6f4, 0.2);
+}
+
+#cpu.warning {
+    color:        var(--warning);
+    border-color: alpha(#aead8e, 0.5);
+}
+
+#memory {
+    color:        var(--accent-mauve);
+    border-color: alpha(#8e6e8e, 0.4);
+}
+
+#memory.warning {
+    color: var(--warning);
+}
+
+#memory.critical {
+    color:        var(--critical);
+    border-color: alpha(#ac6e7e, 0.5);
+    animation:    blink 1.5s ease infinite;
+}
+
+#temperature {
+    color:        var(--fg-dim);
+    border-color: alpha(#6eaeae, 0.3);
+}
+
+#temperature.critical {
+    color:            var(--critical);
+    background-color: alpha(#ac6e7e, 0.1);
+    border-color:     var(--critical);
+    animation:        blink 1s ease infinite;
+}
+
+#battery {
+    color:        var(--accent-green);
+    border-color: alpha(#4e6e4e, 0.4);
+}
+
+#battery.charging,
+#battery.plugged {
+    color:        var(--accent-green);
+    border-color: var(--accent-green);
+}
+
+#battery.warning:not(.charging) {
+    color:        var(--warning);
+    border-color: alpha(#aead8e, 0.5);
+}
+
+#battery.critical:not(.charging) {
+    color:            var(--critical);
+    background-color: alpha(#ac6e7e, 0.1);
+    border-color:     var(--critical);
+    animation:        blink 0.8s ease infinite;
+}
+
+#tray {
+    background-color: var(--bg-surface);
+    border-color:     var(--border);
+    padding:          2px 8px;
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+    background-color: alpha(#ac6e7e, 0.15);
+    border-radius:    var(--radius);
+}
+
+#custom-screenshot {
+    color:        var(--accent-blue);
+    border-color: alpha(#6e8eae, 0.4);
+    font-size:    14px;
+    padding:      2px 10px;
+}
+
+#custom-power {
+    color:        var(--accent-rose);
+    border-color: alpha(#8e4e5e, 0.4);
+    font-size:    14px;
+    padding:      2px 10px;
+    margin-right: 6px;
+    transition:   all 0.2s ease;
+}
+
+#custom-power:hover {
+    background-color: alpha(#ac6e7e, 0.15);
+    border-color:     var(--accent-rose-bright);
+    color:            var(--accent-rose-bright);
+}
+
+@keyframes blink {
+    to { opacity: 0.4; }
+}
+
+tooltip {
+    background:    var(--bg);
+    border:        1px solid var(--border);
+    border-radius: var(--radius);
+    color:         var(--fg);
+}
+
+tooltip label {
+    color:       var(--fg);
+    padding:     4px 8px;
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size:   11px;
+}
