@@ -1,10 +1,7 @@
 #!/bin/bash
 
-bash +e
-
 echo "[PROCESS] Initializing system update..."
 sudo pacman-key --init
-sudo pacman-key --populate artix
 sudo pacman -Syyu --noconfirm
 
 echo "[PROCESS] Installing base-devel and git..."
