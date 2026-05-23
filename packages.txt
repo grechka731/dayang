@@ -1,4 +1,13 @@
 # ==========================================
+# System base
+# ==========================================
+p:polkit-gnome
+p:xdg-desktop-portal-hyprland
+p:xdg-desktop-portal-gtk
+p:qt5-wayland
+p:qt6-wayland
+
+# ==========================================
 # Games & Chat
 # ==========================================
 p:steam
@@ -18,9 +27,14 @@ p:python-pip
 p:zig
 
 # ==========================================
-# Browser & Terminal
+# Browser & Editor
 # ==========================================
 p:firefox
+p:neovim
+
+# ==========================================
+# Terminal
+# ==========================================
 p:kitty
 
 # ==========================================
@@ -32,10 +46,12 @@ p:swww
 p:rofi-wayland
 p:mako
 p:wl-clipboard
+p:cliphist
 p:pavucontrol
 p:brightnessctl
 p:network-manager-applet
 p:wlogout
+p:playerctl
 
 # ==========================================
 # Screenshots
@@ -52,4 +68,4 @@ p:ttf-jetbrains-mono-nerd
 p:noto-fonts-emoji
 p:papirus-icon-theme
 p:nwg-look
-p:arc-gtk-theme
+y:arc-gtk-theme

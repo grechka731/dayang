@@ -1,28 +1,30 @@
-# artix-dots
+# artix-dots — Depressive Rose
 
-Hyprland dotfiles. Style: Depressive Rose.
+Hyprland dotfiles for **Artix Linux**. Dark rose + forest green aesthetic.
 
 ## Structure
 
 ```
-config/
-├── kitty/
-│   ├── kitty.conf
-│   └── themes/depressive_rose.conf
-├── mako/config
-├── rofi/
-│   ├── config.rasi
-│   ├── colors/          ← 18 color schemes
-│   ├── images/          ← background images for rofi
-│   └── launchers/type-7/style-5.rasi
-├── waybar/
-│   ├── config.jsonc
-│   └── style.css
-└── scripts/
-    ├── screenshot.sh
-    └── wallpaper.sh
-packages.txt
-install.sh
+artix-dots/
+├── hypr/
+│   └── hyprland.conf          ← main config (Hyprland 0.41+)
+├── config/
+│   ├── kitty/
+│   │   ├── kitty.conf
+│   │   └── themes/depressive_rose.conf
+│   ├── mako/config
+│   ├── rofi/                  ← created by install.sh
+│   │   ├── config.rasi
+│   │   ├── colors/depressive-rose.rasi
+│   │   └── launchers/type-7/style-5.rasi
+│   ├── waybar/
+│   │   ├── config.jsonc
+│   │   └── style.css
+│   └── scripts/
+│       ├── screenshot.sh
+│       └── wallpaper.sh
+├── install.sh
+└── packages.txt
 ```
 
 ## Install
@@ -33,70 +35,90 @@ cd dayang
 bash install.sh
 ```
 
+The installer will:
+1. Update keyring and repos
+2. Install yay (if missing)
+3. Install all packages from `packages.txt`
+4. Copy configs to `~/.config/`
+5. Install hyprland.conf
+6. Create rofi theme and colors
+7. Make scripts executable
+8. Create `~/Pictures/Screenshots/` and `~/Pictures/Wallpapers/`
+
 ## After install
 
 **1. Wallpapers** — put images into `~/Pictures/Wallpapers/`
 
-**2. hyprland.conf** — add to `exec-once`:
-
-```ini
-exec-once = ~/.config/scripts/wallpaper.sh init
-exec-once = waybar
-exec-once = mako
-```
-
-**3. Keybinds** — add to hyprland.conf:
-
-```ini
-bind = , Print,       exec, ~/.config/scripts/screenshot.sh area
-bind = SHIFT, Print,  exec, ~/.config/scripts/screenshot.sh full
-bind = SUPER, Print,  exec, ~/.config/scripts/screenshot.sh window
-bind = SUPER, R,      exec, rofi -show drun -theme ~/.config/rofi/launchers/type-7/style-5.rasi
-```
-
-**4. Rust** (first run):
+**2. Start Hyprland:**
 
 ```bash
-rustup default stable
+export XDG_RUNTIME_DIR=/run/user/$(id -u) && Hyprland
 ```
 
-## Screenshots
+Or add to your display manager / `.bash_profile`.
+
+## Keybinds
 
 | Bind | Action |
 |------|--------|
-| `Print` | Select area → open in swappy editor |
-| `Shift+Print` | Fullscreen → save + copy to clipboard |
-| `Super+Print` | Active window → open in swappy editor |
+| `Super+Return` | Open kitty terminal |
+| `Super+R` | Rofi launcher |
+| `Super+Q` | Close window |
+| `Super+F` | Fullscreen |
+| `Super+V` | Toggle float |
+| `Super+M` | Exit Hyprland |
+| `Super+arrows` | Focus window |
+| `Super+Shift+arrows` | Move window |
+| `Super+Alt+arrows` | Resize window |
+| `Super+1-9` | Switch workspace |
+| `Super+Shift+1-9` | Move window to workspace |
+| `Print` | Screenshot area → swappy |
+| `Shift+Print` | Screenshot fullscreen → clipboard |
+| `Super+Print` | Screenshot active window → swappy |
 
-Saved to: `~/Pictures/Screenshots/`
+## Waybar interactions
 
-## Wallpapers
+| Element | Click | Action |
+|---------|-------|--------|
+| 󰹑 Screenshot | LMB | Area screenshot → swappy |
+| 󰹑 Screenshot | RMB | Fullscreen → clipboard |
+| 󰐥 Power | LMB | wlogout menu |
+| 󰐥 Power | RMB | Suspend |
+| Clock | LMB | Toggle time/date |
+| Clock | RMB | Toggle calendar |
+| CPU / RAM | LMB | Open htop in kitty |
+| Volume | Scroll | ±2% volume |
+| Network | RMB | nm-connection-editor |
 
-| Command | Action |
-|---------|--------|
-| `wallpaper.sh init` | Start daemon + set random wallpaper (use in exec-once) |
-| `wallpaper.sh set <file>` | Set specific wallpaper |
-| `wallpaper.sh random [dir]` | Set random from directory |
-| `wallpaper.sh cycle [dir] [seconds]` | Auto-cycle wallpapers |
+## Wallpaper commands
 
-## Waybar
+```bash
+wallpaper.sh init              # Start daemon + random (use in exec-once)
+wallpaper.sh set <file>        # Set specific file
+wallpaper.sh random [dir]      # Random from directory
+wallpaper.sh cycle [dir] [sec] # Auto-cycle every N seconds (default 1800)
+```
 
-| Click | Action |
-|-------|--------|
-| 󰹑 LMB | Screenshot area → swappy |
-| 󰹑 RMB | Screenshot fullscreen → clipboard |
-| 󰐥 LMB | wlogout (power menu) |
-| 󰐥 RMB | Suspend |
-| Clock LMB | Toggle time/date format |
-| Clock RMB | Toggle calendar month/year |
-| CPU/RAM click | Open htop in kitty |
-| Volume scroll | ±2% volume |
+## Colors
 
-## Fixes applied
+| Name | Hex |
+|------|-----|
+| Background | `#1a1016` |
+| Surface | `#221520` |
+| Foreground | `#f0e6e6` |
+| Accent Green | `#4e6e4e` |
+| Accent Rose | `#8e4e5e` |
+| Accent Blue | `#6e8eae` |
+| Border | `#3e2e34` |
 
-- `depressive_rose.conf`: `background_selection` → `selection_background`
-- `mako/config`: `sort=-time` moved before urgency sections; added missing `[urgency=normal]`; added `default-timeout=0` for high urgency
-- `install.sh`: `configs/` → `config/` (dir name mismatch); added `--needed` flag to pacman/yay to skip already-installed; added `chmod +x` for scripts; added directory creation for screenshots/wallpapers
-- `packages.txt`: added `wlogout` (used by waybar power button); added `jq` (used by screenshot window mode)
-- `waybar/config.jsonc`: removed Cyrillic strings from format fields (can break some locales); added `custom/screenshot` module
-- `waybar/style.css`: added `#custom-screenshot` styles
+## Fixes vs original (Hyprland 0.41+)
+
+- `windowrule = float, class:X` → `windowrulev2 = float, class:(X)` — fixes the "invalid field float: missing a value" error on lines 101-103
+- Removed `new_optimizations` from `blur {}` (removed in Hyprland 0.40)
+- Removed `cursor_trail` from kitty.conf (syntax changed)
+- Added `shadow {}` block syntax (new in Hyprland 0.41)
+- Added `resize_on_border`, `focus_on_activate`, `animate_manual_resizes` to misc/general
+- install.sh: proper error handling, colored output, summary
+- rofi config + theme created automatically by install.sh
+- Added `playerctl` for media key support
+- Added `polkit-gnome`, `xdg-desktop-portal-hyprland` to packages

@@ -9,17 +9,22 @@ background-color=#1a1016
 text-color=#f0e6e6
 border-color=#4e6e4e
 default-timeout=5000
+max-visible=5
 sort=-time
+layer=overlay
 
 [urgency=low]
 border-color=#3e2e34
 text-color=#cdd6f4
+default-timeout=3000
 
 [urgency=normal]
 border-color=#4e6e4e
 text-color=#f0e6e6
+default-timeout=5000
 
 [urgency=high]
 border-color=#ac6e7e
 text-color=#f5c2e7
+background-color=#1a1016
 default-timeout=0

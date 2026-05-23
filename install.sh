@@ -1,172 +1,275 @@
 #!/bin/bash
+# ============================================================
+# install.sh — Depressive Rose dotfiles installer
+# Artix Linux (OpenRC / runit / s6)
+# ============================================================
 
-echo "[PROCESS] Initializing system update..."
+set -euo pipefail
+
+RED='\033[0;31m'
+GRN='\033[0;32m'
+YLW='\033[1;33m'
+BLU='\033[0;34m'
+RST='\033[0m'
+
+step()  { echo -e "\n${BLU}[>>]${RST} $*"; }
+ok()    { echo -e "${GRN}[OK]${RST} $*"; }
+warn()  { echo -e "${YLW}[!!]${RST} $*"; }
+fatal() { echo -e "${RED}[XX]${RST} $*"; exit 1; }
+
+# ---- sanity checks ----
+[ "$EUID" -eq 0 ] && fatal "Do NOT run as root. The script uses sudo internally."
+[ -f packages.txt ] || fatal "packages.txt not found — run from the repo root."
+
+# ---- keyring ----
+step "Refreshing pacman keyring..."
 sudo pacman-key --init
-sudo pacman-key --populate artix
+sudo pacman-key --populate artix archlinux 2>/dev/null || sudo pacman-key --populate artix
 sudo pacman -Syyu --noconfirm
+ok "Keyring and repos updated."
 
-echo "[PROCESS] Installing base-devel and git..."
-sudo pacman -S --noconfirm --needed base-devel git
+# ---- base-devel + git ----
+step "Installing base-devel and git..."
+sudo pacman -S --noconfirm --needed base-devel git curl
+ok "base-devel ready."
 
-if ! command -v yay &> /dev/null; then
-    echo "[INFO] Installing yay..."
-    ORIG_DIR="$(pwd)"
+# ---- yay ----
+if ! command -v yay &>/dev/null; then
+    step "Installing yay (AUR helper)..."
+    ORIG="$(pwd)"
     cd /tmp
     rm -rf yay
     git clone https://aur.archlinux.org/yay.git
     cd yay
     makepkg -si --noconfirm
-    cd "$ORIG_DIR"
+    cd "$ORIG"
+    ok "yay installed."
 else
-    echo "[INFO] yay already installed."
+    ok "yay already present."
 fi
 
-PACKAGE_FILE="packages.txt"
-if [ ! -f "$PACKAGE_FILE" ]; then
-    echo "[FATAL] $PACKAGE_FILE not found."
-    exit 1
-fi
-
-echo "[PROCESS] Installing packages..."
+# ---- packages ----
+step "Installing packages from packages.txt..."
+ERRORS=()
 while IFS= read -r line || [ -n "$line" ]; do
     [[ -z "$line" || "$line" =~ ^# ]] && continue
-    manager=$(echo "$line" | cut -d':' -f1)
-    package=$(echo "$line" | cut -d':' -f2-)
+    manager="${line%%:*}"
+    package="${line#*:}"
     case "$manager" in
-        p) sudo pacman -S --noconfirm --needed "$package" ;;
-        y) yay -S --noconfirm --needed "$package" ;;
+        p)
+            if ! sudo pacman -S --noconfirm --needed "$package" 2>/dev/null; then
+                warn "pacman: failed to install '$package'"
+                ERRORS+=("pacman:$package")
+            fi
+            ;;
+        y)
+            if ! yay -S --noconfirm --needed "$package" 2>/dev/null; then
+                warn "yay: failed to install '$package'"
+                ERRORS+=("yay:$package")
+            fi
+            ;;
         g)
-            repo_name=$(basename "$package" .git)
-            target_dir="$HOME/.config/$repo_name"
-            [ -d "$target_dir" ] || git clone "$package" "$target_dir"
+            repo_name="$(basename "$package" .git)"
+            target="$HOME/.config/$repo_name"
+            if [ -d "$target" ]; then
+                ok "git repo '$repo_name' already cloned."
+            else
+                git clone "$package" "$target" && ok "Cloned $repo_name"
+            fi
+            ;;
+        *)
+            warn "Unknown manager '$manager' for '$package', skipping."
             ;;
     esac
-done < "$PACKAGE_FILE"
+done < packages.txt
 
-echo "[PROCESS] Copying configs..."
+if [ ${#ERRORS[@]} -gt 0 ]; then
+    warn "Some packages failed to install:"
+    for e in "${ERRORS[@]}"; do echo "  - $e"; done
+fi
+
+# ---- copy configs ----
+step "Copying configs to ~/.config/ ..."
 mkdir -p "$HOME/.config"
-[ -d "config" ] && cp -r config/* "$HOME/.config/"
 
-echo "[PROCESS] Making scripts executable..."
-chmod +x "$HOME/.config/scripts/"*.sh 2>/dev/null
+if [ -d "config" ]; then
+    cp -r config/. "$HOME/.config/"
+    ok "configs copied."
+else
+    warn "'config/' directory not found — skipping."
+fi
 
-echo "[PROCESS] Creating directories..."
+# ---- copy hyprland.conf ----
+step "Writing hypr/hyprland.conf..."
+mkdir -p "$HOME/.config/hypr"
+cp hypr/hyprland.conf "$HOME/.config/hypr/hyprland.conf"
+ok "hyprland.conf installed."
+
+# ---- scripts executable ----
+step "Making scripts executable..."
+find "$HOME/.config/scripts" -name "*.sh" -exec chmod +x {} \; 2>/dev/null
+ok "Scripts are executable."
+
+# ---- directories ----
+step "Creating required directories..."
 mkdir -p "$HOME/Pictures/Screenshots"
 mkdir -p "$HOME/Pictures/Wallpapers"
+ok "Directories created."
 
-echo "[PROCESS] Writing hyprland.conf..."
-mkdir -p "$HOME/.config/hypr"
-cat > "$HOME/.config/hypr/hyprland.conf" << 'HYPR'
-exec-once = ~/.config/scripts/wallpaper.sh init
-exec-once = waybar
-exec-once = mako
+# ---- rofi config ----
+step "Setting up rofi config..."
+mkdir -p "$HOME/.config/rofi"
+if [ ! -f "$HOME/.config/rofi/config.rasi" ]; then
+    cat > "$HOME/.config/rofi/config.rasi" << 'EOF'
+configuration {
+    modi:           "drun,run,window";
+    show-icons:     true;
+    drun-display-format: "{name}";
+    display-drun:   " Apps";
+    display-run:    " Run";
+    display-window: "󰖯 Windows";
+    icon-theme:     "Papirus-Dark";
+    font:           "JetBrainsMono Nerd Font 11";
+}
+EOF
+    ok "rofi config.rasi created."
+fi
 
-$terminal = kitty
-$menu = rofi -show drun -theme ~/.config/rofi/launchers/type-7/style-5.rasi
+# ---- rofi theme (type-7/style-5) ----
+mkdir -p "$HOME/.config/rofi/launchers/type-7"
+cat > "$HOME/.config/rofi/launchers/type-7/style-5.rasi" << 'EOF'
+/* Depressive Rose — rofi type-7 style-5 */
+@import "colors/depressive-rose.rasi"
 
-bind = SUPER, Return, exec, $terminal
-bind = SUPER, R,      exec, $menu
-bind = SUPER, Q,      killactive
-bind = SUPER, M,      exit
-bind = SUPER, F,      fullscreen
-
-bind = , Print,      exec, ~/.config/scripts/screenshot.sh area
-bind = SHIFT, Print, exec, ~/.config/scripts/screenshot.sh full
-bind = SUPER, Print, exec, ~/.config/scripts/screenshot.sh window
-
-bind = SUPER, left,  movefocus, l
-bind = SUPER, right, movefocus, r
-bind = SUPER, up,    movefocus, u
-bind = SUPER, down,  movefocus, d
-
-bind = SUPER, 1, workspace, 1
-bind = SUPER, 2, workspace, 2
-bind = SUPER, 3, workspace, 3
-bind = SUPER, 4, workspace, 4
-bind = SUPER, 5, workspace, 5
-bind = SUPER, 6, workspace, 6
-bind = SUPER, 7, workspace, 7
-bind = SUPER, 8, workspace, 8
-bind = SUPER, 9, workspace, 9
-
-bind = SUPER SHIFT, 1, movetoworkspace, 1
-bind = SUPER SHIFT, 2, movetoworkspace, 2
-bind = SUPER SHIFT, 3, movetoworkspace, 3
-bind = SUPER SHIFT, 4, movetoworkspace, 4
-bind = SUPER SHIFT, 5, movetoworkspace, 5
-bind = SUPER SHIFT, 6, movetoworkspace, 6
-bind = SUPER SHIFT, 7, movetoworkspace, 7
-bind = SUPER SHIFT, 8, movetoworkspace, 8
-bind = SUPER SHIFT, 9, movetoworkspace, 9
-
-bindm = SUPER, mouse:272, movewindow
-bindm = SUPER, mouse:273, resizewindow
-
-binde = , XF86AudioRaiseVolume,  exec, pactl set-sink-volume @DEFAULT_SINK@ +5%
-binde = , XF86AudioLowerVolume,  exec, pactl set-sink-volume @DEFAULT_SINK@ -5%
-bind  = , XF86AudioMute,         exec, pactl set-sink-mute @DEFAULT_SINK@ toggle
-binde = , XF86MonBrightnessUp,   exec, brightnessctl set +5%
-binde = , XF86MonBrightnessDown, exec, brightnessctl set 5%-
-
-general {
-    gaps_in = 5
-    gaps_out = 10
-    border_size = 2
-    col.active_border = rgb(4e6e4e)
-    col.inactive_border = rgb(3e2e34)
-    layout = dwindle
+* {
+    font:         "JetBrainsMono Nerd Font 11";
+    background:   transparent;
+    text-color:   @fg;
 }
 
-decoration {
-    rounding = 8
-    active_opacity = 1.0
-    inactive_opacity = 0.95
-    blur {
-        enabled = true
-        size = 5
-        passes = 2
-        new_optimizations = true
-    }
+configuration {
+    show-icons:      true;
+    icon-theme:      "Papirus-Dark";
 }
 
-animations {
-    enabled = true
-    bezier = myBezier, 0.05, 0.9, 0.1, 1.05
-    animation = windows,    1, 5, myBezier
-    animation = windowsOut, 1, 4, default, popin 80%
-    animation = border,     1, 8, default
-    animation = fade,       1, 6, default
-    animation = workspaces, 1, 5, default
+window {
+    width:            480px;
+    background-color: @bg;
+    border:           2px solid;
+    border-color:     @accent-green;
+    border-radius:    12px;
+    padding:          0;
 }
 
-dwindle {
-    force_split = 2
+mainbox {
+    background-color: transparent;
+    children:  [ inputbar, listview ];
+    padding:   12px;
+    spacing:   8px;
 }
 
-input {
-    kb_layout = us,ru
-    kb_options = grp:alt_shift_toggle
-    follow_mouse = 1
-    touchpad {
-        natural_scroll = true
-    }
+inputbar {
+    background-color: @bg-surface;
+    border-radius:    8px;
+    border:           1px solid @border;
+    children:         [ prompt, entry ];
+    padding:          8px 12px;
+    spacing:          8px;
 }
 
-misc {
-    force_default_wallpaper = 0
-    disable_hyprland_logo = true
+prompt {
+    color:       @accent-green;
+    font:        "JetBrainsMono Nerd Font Bold 11";
 }
 
-windowrule = float, class:pavucontrol
-windowrule = float, class:nm-connection-editor
-windowrule = float, title:swappy
-HYPR
+entry {
+    color:            @fg;
+    placeholder:      "Search...";
+    placeholder-color: @fg-muted;
+}
 
-echo "[PROCESS] Setting up Rust..."
-command -v rustup &> /dev/null && rustup default stable
+listview {
+    background-color: transparent;
+    columns:          1;
+    lines:            8;
+    spacing:          2px;
+    scrollbar:        false;
+}
 
+element {
+    background-color: transparent;
+    border-radius:    6px;
+    padding:          6px 10px;
+    spacing:          8px;
+    children:         [ element-icon, element-text ];
+    orientation:      horizontal;
+}
+
+element selected {
+    background-color: @bg-hover;
+    border:           1px solid @accent-green;
+}
+
+element-icon {
+    size:             24px;
+    background-color: transparent;
+}
+
+element-text {
+    background-color: transparent;
+    color:            @fg;
+    vertical-align:   0.5;
+}
+
+element-text selected {
+    color: @fg;
+}
+EOF
+ok "rofi theme installed."
+
+mkdir -p "$HOME/.config/rofi/colors"
+cat > "$HOME/.config/rofi/colors/depressive-rose.rasi" << 'EOF'
+* {
+    bg:           #1a1016;
+    bg-alt:       #130b0e;
+    bg-surface:   #221520;
+    bg-hover:     #2e1e28;
+    fg:           #f0e6e6;
+    fg-dim:       #cdd6f4;
+    fg-muted:     #6c7086;
+    accent-green: #4e6e4e;
+    accent-rose:  #8e4e5e;
+    accent-blue:  #6e8eae;
+    border:       #3e2e34;
+}
+EOF
+ok "rofi colors installed."
+
+# ---- Rust ----
+if command -v rustup &>/dev/null; then
+    step "Setting rustup default to stable..."
+    rustup default stable
+    ok "Rust stable active."
+fi
+
+# ---- summary ----
 echo ""
-echo "[SUCCESS] All done!"
+echo -e "${GRN}╔══════════════════════════════════════════════╗${RST}"
+echo -e "${GRN}║         Installation complete!               ║${RST}"
+echo -e "${GRN}╚══════════════════════════════════════════════╝${RST}"
 echo ""
-echo "  1. Put wallpapers into ~/Pictures/Wallpapers/"
-echo "  2. Run: export XDG_RUNTIME_DIR=/run/user/\$(id -u) && Hyprland"
+echo -e "  ${YLW}Next steps:${RST}"
+echo -e "  1. Put wallpapers into ${BLU}~/Pictures/Wallpapers/${RST}"
+echo -e "  2. Start Hyprland:"
+echo -e "     ${BLU}export XDG_RUNTIME_DIR=/run/user/\$(id -u) && Hyprland${RST}"
+echo ""
+echo -e "  ${YLW}Keybinds cheatsheet:${RST}"
+echo -e "  ${BLU}SUPER+Return${RST}   — kitty terminal"
+echo -e "  ${BLU}SUPER+R${RST}        — rofi launcher"
+echo -e "  ${BLU}SUPER+Q${RST}        — close window"
+echo -e "  ${BLU}SUPER+F${RST}        — fullscreen"
+echo -e "  ${BLU}SUPER+V${RST}        — toggle float"
+echo -e "  ${BLU}Print${RST}          — screenshot area → swappy"
+echo -e "  ${BLU}Shift+Print${RST}    — screenshot full → clipboard"
+echo -e "  ${BLU}SUPER+Print${RST}    — screenshot window → swappy"
+echo ""
