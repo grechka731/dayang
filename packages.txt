@@ -1,5 +1,5 @@
 # ==========================================
-# System base
+# System base (required)
 # ==========================================
 p:polkit-gnome
 p:xdg-desktop-portal-hyprland
@@ -8,23 +8,17 @@ p:qt5-wayland
 p:qt6-wayland
 
 # ==========================================
-# Games & Chat
-# ==========================================
-p:steam
-p:discord
-
-# ==========================================
 # Dev tools (C++, Rust, Go, Python, Zig)
 # ==========================================
 p:gcc
 p:make
 p:cmake
-y:xmake
 p:rustup
 p:go
 p:python
 p:python-pip
 p:zig
+# y:xmake  # uncomment if you want xmake from AUR
 
 # ==========================================
 # Browser & Editor
@@ -69,3 +63,9 @@ p:noto-fonts-emoji
 p:papirus-icon-theme
 p:nwg-look
 y:arc-gtk-theme
+
+# ==========================================
+# Optional (uncomment if needed)
+# ==========================================
+# p:steam      # requires multilib repo
+# p:discord    # requires multilib repo
