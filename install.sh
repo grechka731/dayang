@@ -24,6 +24,16 @@ fatal() { echo -e "${RED}[XX]${RST} $*"; exit 1; }
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# ---- cleanup broken state from old installs ----
+# Old install.sh wrote hyprland.conf content into ~/.config/hypr as a plain FILE.
+# We need it to be a directory. Detect and fix this.
+for broken in "$HOME/.config/hypr"; do
+    if [ -e "$broken" ] && [ ! -d "$broken" ]; then
+        warn "Found '$broken' as a file (broken state from old install) — removing..."
+        rm -f "$broken"
+    fi
+done
+
 # ---- keyring ----
 step "Refreshing pacman keyring..."
 sudo pacman-key --init
@@ -115,7 +125,11 @@ fi
 
 # ---- hyprland.conf ----
 step "Writing hypr/hyprland.conf..."
-# mkdir -p is idempotent — safe even if dir exists
+# If ~/.config/hypr exists as a FILE (leftover from old install), remove it first
+if [ -e "$HOME/.config/hypr" ] && [ ! -d "$HOME/.config/hypr" ]; then
+    warn "~/.config/hypr exists as a file (leftover), removing it..."
+    rm -f "$HOME/.config/hypr"
+fi
 mkdir -p "$HOME/.config/hypr"
 cp "$DOTFILES_DIR/hypr/hyprland.conf" "$HOME/.config/hypr/hyprland.conf"
 ok "hyprland.conf installed."
@@ -243,8 +257,11 @@ ok "rofi theme installed."
 # ---- Rust ----
 if command -v rustup &>/dev/null; then
     step "Setting rustup default to stable..."
-    rustup default stable || true
-    ok "Rust stable active."
+    if rustup default stable 2>/dev/null; then
+        ok "Rust stable active."
+    else
+        warn "rustup: could not set stable (no internet?). Run 'rustup default stable' manually later."
+    fi
 fi
 
 # ---- done ----
