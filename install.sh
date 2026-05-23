@@ -4,9 +4,6 @@
 # Artix Linux (OpenRC / runit / s6)
 # ============================================================
 
-# NO set -e — we handle errors manually so one failed package
-# doesn't abort the whole install.
-
 RED='\033[0;31m'
 GRN='\033[0;32m'
 YLW='\033[1;33m'
@@ -18,21 +15,16 @@ ok()    { echo -e "${GRN}[OK]${RST} $*"; }
 warn()  { echo -e "${YLW}[!!]${RST} $*"; }
 fatal() { echo -e "${RED}[XX]${RST} $*"; exit 1; }
 
-# ---- sanity checks ----
 [ "$EUID" -eq 0 ] && fatal "Do NOT run as root. The script uses sudo internally."
 [ -f packages.txt ] || fatal "packages.txt not found — run from the repo root."
 
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ---- cleanup broken state from old installs ----
-# Old install.sh wrote hyprland.conf content into ~/.config/hypr as a plain FILE.
-# We need it to be a directory. Detect and fix this.
-for broken in "$HOME/.config/hypr"; do
-    if [ -e "$broken" ] && [ ! -d "$broken" ]; then
-        warn "Found '$broken' as a file (broken state from old install) — removing..."
-        rm -f "$broken"
-    fi
-done
+if [ -e "$HOME/.config/hypr" ] && [ ! -d "$HOME/.config/hypr" ]; then
+    warn "~/.config/hypr is a file (broken old install) — removing..."
+    rm -f "$HOME/.config/hypr"
+fi
 
 # ---- keyring ----
 step "Refreshing pacman keyring..."
@@ -62,9 +54,55 @@ else
     ok "yay already present."
 fi
 
-# ---- packages ----
+# ============================================================
+# ---- Hyprland smart install ----
+# ============================================================
+install_hyprland() {
+    step "Installing Hyprland (trying all methods)..."
+
+    # Method 1: pacman (Artix repo — fastest)
+    if sudo pacman -S --noconfirm --needed hyprland 2>/dev/null; then
+        ok "Hyprland installed via pacman."
+        return 0
+    fi
+    warn "pacman method failed, trying galaxy repo..."
+
+    # Method 2: galaxy repo
+    if sudo pacman -S --noconfirm --needed galaxy/hyprland 2>/dev/null; then
+        ok "Hyprland installed via galaxy."
+        return 0
+    fi
+    warn "galaxy method failed, trying AUR stable packages..."
+
+    # Method 3: AUR stable (not -git, avoids long compilation)
+    local FAILED=0
+    for pkg in hyprutils aquamarine hyprlang hyprcursor hyprland; do
+        if ! yay -S --noconfirm --needed \
+                --answerdiff=None \
+                --answerclean=None \
+                --removemake \
+                "$pkg" 2>/dev/null; then
+            warn "AUR: could not install $pkg"
+            FAILED=1
+        fi
+    done
+
+    if command -v Hyprland &>/dev/null; then
+        ok "Hyprland installed via AUR."
+        return 0
+    fi
+
+    warn "Could not install Hyprland automatically."
+    warn "Run manually after install: sudo pacman -S hyprland"
+    return 1
+}
+
+install_hyprland
+
+# ============================================================
+# ---- packages from packages.txt ----
+# ============================================================
 step "Installing packages from packages.txt..."
-SKIP_PKGS=("steam" "discord")   # optional — skip in minimal/VM installs
 ERRORS=()
 
 while IFS= read -r line || [ -n "$line" ]; do
@@ -72,11 +110,8 @@ while IFS= read -r line || [ -n "$line" ]; do
     manager="${line%%:*}"
     package="${line#*:}"
 
-    # skip known-optional packages if pacman multilib is not enabled
-    if [[ " ${SKIP_PKGS[*]} " == *" $package "* ]]; then
-        warn "Skipping optional package: $package"
-        continue
-    fi
+    # skip hyprland — already handled above
+    [ "$package" = "hyprland" ] && continue
 
     case "$manager" in
         p)
@@ -86,7 +121,10 @@ while IFS= read -r line || [ -n "$line" ]; do
             fi
             ;;
         y)
-            if ! yay -S --noconfirm --needed --answerdiff=None --answerclean=None "$package" 2>/dev/null; then
+            if ! yay -S --noconfirm --needed \
+                    --answerdiff=None \
+                    --answerclean=None \
+                    "$package" 2>/dev/null; then
                 warn "yay: failed → $package (skipping)"
                 ERRORS+=("yay:$package")
             fi
@@ -95,8 +133,8 @@ while IFS= read -r line || [ -n "$line" ]; do
             repo_name="$(basename "$package" .git)"
             target="$HOME/.config/$repo_name"
             if [ -d "$target" ]; then
-                ok "git repo '$repo_name' already cloned, pulling..."
                 git -C "$target" pull --ff-only 2>/dev/null || true
+                ok "Updated $repo_name"
             else
                 git clone "$package" "$target" && ok "Cloned $repo_name"
             fi
@@ -115,7 +153,6 @@ fi
 # ---- copy configs ----
 step "Copying configs to ~/.config/ ..."
 mkdir -p "$HOME/.config"
-
 if [ -d "$DOTFILES_DIR/config" ]; then
     cp -r "$DOTFILES_DIR/config/." "$HOME/.config/"
     ok "configs copied."
@@ -125,9 +162,7 @@ fi
 
 # ---- hyprland.conf ----
 step "Writing hypr/hyprland.conf..."
-# If ~/.config/hypr exists as a FILE (leftover from old install), remove it first
 if [ -e "$HOME/.config/hypr" ] && [ ! -d "$HOME/.config/hypr" ]; then
-    warn "~/.config/hypr exists as a file (leftover), removing it..."
     rm -f "$HOME/.config/hypr"
 fi
 mkdir -p "$HOME/.config/hypr"
@@ -139,13 +174,13 @@ step "Making scripts executable..."
 find "$HOME/.config/scripts" -name "*.sh" -exec chmod +x {} \; 2>/dev/null || true
 ok "Scripts are executable."
 
-# ---- required directories ----
+# ---- directories ----
 step "Creating required directories..."
 mkdir -p "$HOME/Pictures/Screenshots"
 mkdir -p "$HOME/Pictures/Wallpapers"
 ok "Directories ready."
 
-# ---- rofi config ----
+# ---- rofi ----
 step "Setting up rofi config..."
 mkdir -p "$HOME/.config/rofi/launchers/type-7"
 mkdir -p "$HOME/.config/rofi/colors"
@@ -163,94 +198,34 @@ configuration {
     font:               "JetBrainsMono Nerd Font 11";
 }
 EOF
-    ok "rofi config.rasi created."
 fi
 
 cat > "$HOME/.config/rofi/colors/depressive-rose.rasi" << 'EOF'
 * {
     bg:           #1a1016;
-    bg-alt:       #130b0e;
     bg-surface:   #221520;
     bg-hover:     #2e1e28;
     fg:           #f0e6e6;
-    fg-dim:       #cdd6f4;
     fg-muted:     #6c7086;
     accent-green: #4e6e4e;
-    accent-rose:  #8e4e5e;
-    accent-blue:  #6e8eae;
     border:       #3e2e34;
 }
 EOF
 
 cat > "$HOME/.config/rofi/launchers/type-7/style-5.rasi" << 'EOF'
-/* Depressive Rose — rofi type-7 style-5 */
 @import "../../colors/depressive-rose.rasi"
-
-* {
-    font:         "JetBrainsMono Nerd Font 11";
-    background:   transparent;
-    text-color:   @fg;
-}
-configuration {
-    show-icons:  true;
-    icon-theme:  "Papirus-Dark";
-}
-window {
-    width:            480px;
-    background-color: @bg;
-    border:           2px solid;
-    border-color:     @accent-green;
-    border-radius:    12px;
-}
-mainbox {
-    background-color: transparent;
-    children:  [ inputbar, listview ];
-    padding:   12px;
-    spacing:   8px;
-}
-inputbar {
-    background-color: @bg-surface;
-    border-radius:    8px;
-    border:           1px solid @border;
-    children:         [ prompt, entry ];
-    padding:          8px 12px;
-    spacing:          8px;
-}
-prompt {
-    color: @accent-green;
-}
-entry {
-    color:             @fg;
-    placeholder:       "Search...";
-    placeholder-color: @fg-muted;
-}
-listview {
-    background-color: transparent;
-    columns:   1;
-    lines:     8;
-    spacing:   2px;
-    scrollbar: false;
-}
-element {
-    background-color: transparent;
-    border-radius:    6px;
-    padding:          6px 10px;
-    spacing:          8px;
-    children:         [ element-icon, element-text ];
-}
-element selected {
-    background-color: @bg-hover;
-    border:           1px solid @accent-green;
-}
-element-icon {
-    size:             24px;
-    background-color: transparent;
-}
-element-text {
-    background-color: transparent;
-    color:            @fg;
-    vertical-align:   0.5;
-}
+* { font: "JetBrainsMono Nerd Font 11"; background: transparent; text-color: @fg; }
+configuration { show-icons: true; icon-theme: "Papirus-Dark"; }
+window { width: 480px; background-color: @bg; border: 2px solid; border-color: @accent-green; border-radius: 12px; }
+mainbox { background-color: transparent; children: [ inputbar, listview ]; padding: 12px; spacing: 8px; }
+inputbar { background-color: @bg-surface; border-radius: 8px; border: 1px solid @border; children: [ prompt, entry ]; padding: 8px 12px; spacing: 8px; }
+prompt { color: @accent-green; }
+entry { color: @fg; placeholder: "Search..."; placeholder-color: @fg-muted; }
+listview { background-color: transparent; columns: 1; lines: 8; spacing: 2px; scrollbar: false; }
+element { background-color: transparent; border-radius: 6px; padding: 6px 10px; spacing: 8px; children: [ element-icon, element-text ]; }
+element selected { background-color: @bg-hover; border: 1px solid @accent-green; }
+element-icon { size: 24px; background-color: transparent; }
+element-text { background-color: transparent; color: @fg; vertical-align: 0.5; }
 EOF
 ok "rofi theme installed."
 
@@ -260,7 +235,7 @@ if command -v rustup &>/dev/null; then
     if rustup default stable 2>/dev/null; then
         ok "Rust stable active."
     else
-        warn "rustup: could not set stable (no internet?). Run 'rustup default stable' manually later."
+        warn "rustup: no internet? Run 'rustup default stable' manually later."
     fi
 fi
 
@@ -274,11 +249,11 @@ echo -e "  ${YLW}Next steps:${RST}"
 echo -e "  1. Put wallpapers into ${BLU}~/Pictures/Wallpapers/${RST}"
 echo -e "  2. Start Hyprland:"
 echo -e "     ${BLU}export XDG_RUNTIME_DIR=/run/user/\$(id -u) && Hyprland${RST}"
+echo -e "     (in VirtualBox add: WLR_RENDERER=pixman WLR_BACKENDS=drm,libinput)"
 echo ""
 echo -e "  ${YLW}Keybinds:${RST}"
-echo -e "  ${BLU}Super+Return${RST}  terminal  |  ${BLU}Super+R${RST} launcher"
-echo -e "  ${BLU}Super+Q${RST}       close     |  ${BLU}Super+F${RST} fullscreen"
-echo -e "  ${BLU}Super+V${RST}       float     |  ${BLU}Super+M${RST} exit"
-echo -e "  ${BLU}Print${RST}         screenshot area → swappy"
-echo -e "  ${BLU}Shift+Print${RST}   fullscreen → clipboard"
+echo -e "  ${BLU}Super+Return${RST}  terminal  |  ${BLU}Super+R${RST}  launcher"
+echo -e "  ${BLU}Super+Q${RST}       close     |  ${BLU}Super+F${RST}  fullscreen"
+echo -e "  ${BLU}Super+V${RST}       float     |  ${BLU}Super+M${RST}  exit"
+echo -e "  ${BLU}Print${RST}         screenshot area"
 echo ""
