@@ -1,0 +1,16 @@
+/**
+ * Rofi global config
+ * configuration{} block must be in config.rasi, NOT inside a theme file
+ */
+configuration {
+    modi:                "drun,run,window";
+    show-icons:          true;
+    drun-display-format: "{name}";
+    display-drun:        " Apps";
+    display-run:         " Run";
+    display-window:      "󰖯 Windows";
+    icon-theme:          "Papirus-Dark";
+    font:                "JetBrainsMono Nerd Font 11";
+}
+
+@theme "~/.config/rofi/launchers/type-7/style-5.rasi"

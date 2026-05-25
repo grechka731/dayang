@@ -1,11 +1,4 @@
 #!/bin/bash
-# wallpaper.sh — swww wallpaper manager
-# Usage:
-#   wallpaper.sh init              — start daemon + set random wallpaper (exec-once)
-#   wallpaper.sh set <file>        — set specific wallpaper
-#   wallpaper.sh random [dir]      — set random from directory
-#   wallpaper.sh cycle [dir] [sec] — cycle wallpapers every N seconds
-
 TRANSITION="--transition-type wipe --transition-angle 30 --transition-duration 1.5 --transition-fps 60"
 DEFAULT_DIR="$HOME/Pictures/Wallpapers"
 DEFAULT_INTERVAL=1800
@@ -32,7 +25,6 @@ set_wallpaper() {
 
 case "${1:-init}" in
     init)
-        # Start daemon if not running
         if ! pgrep -x swww-daemon &>/dev/null; then
             swww-daemon &
             sleep 0.8

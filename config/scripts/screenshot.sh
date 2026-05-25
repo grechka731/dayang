@@ -1,7 +1,4 @@
 #!/bin/bash
-# screenshot.sh — grim + slurp + swappy
-# Usage: screenshot.sh [area|full|window]
-
 SAVE_DIR="$HOME/Pictures/Screenshots"
 mkdir -p "$SAVE_DIR"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)

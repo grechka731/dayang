@@ -1,0 +1,80 @@
+/**
+ * Depressive Rose — style-5
+ * Rofi launcher theme for dayang dotfiles
+ */
+
+@import "../../colors/depressive-rose.rasi"
+
+* {
+    font:       "JetBrainsMono Nerd Font 11";
+    background: transparent;
+    text-color: @fg;
+}
+
+window {
+    width:            480px;
+    background-color: @bg;
+    border:           2px solid;
+    border-color:     @accent-green;
+    border-radius:    12px;
+}
+
+mainbox {
+    background-color: transparent;
+    children:         [ inputbar, listview ];
+    padding:          12px;
+    spacing:          8px;
+}
+
+inputbar {
+    background-color: @bg-surface;
+    border-radius:    8px;
+    border:           1px solid;
+    border-color:     @border;
+    children:         [ prompt, entry ];
+    padding:          8px 12px;
+    spacing:          8px;
+}
+
+prompt {
+    color: @accent-green;
+}
+
+entry {
+    color:             @fg;
+    placeholder:       "Search...";
+    placeholder-color: @fg-muted;
+}
+
+listview {
+    background-color: transparent;
+    columns:          1;
+    lines:            8;
+    spacing:          2px;
+    scrollbar:        false;
+}
+
+element {
+    background-color: transparent;
+    border-radius:    6px;
+    padding:          6px 10px;
+    spacing:          8px;
+    children:         [ element-icon, element-text ];
+}
+
+element selected {
+    background-color: @bg-hover;
+    border:           1px solid;
+    border-color:     @accent-green;
+}
+
+element-icon {
+    size:             24px;
+    background-color: transparent;
+}
+
+element-text {
+    background-color: transparent;
+    color:            @fg;
+    vertical-align:   0.5;
+}

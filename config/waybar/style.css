@@ -1,21 +1,4 @@
 * {
-    --bg:                 #1a1016;
-    --bg-alt:             #130b0e;
-    --bg-surface:         #221520;
-    --bg-hover:           #2e1e28;
-    --fg:                 #f0e6e6;
-    --fg-dim:             #cdd6f4;
-    --fg-muted:           #6c7086;
-    --accent-green:       #4e6e4e;
-    --accent-rose:        #8e4e5e;
-    --accent-rose-bright: #ac6e7e;
-    --accent-blue:        #6e8eae;
-    --accent-mauve:       #8e6e8e;
-    --warning:            #aead8e;
-    --critical:           #ac6e7e;
-    --border:             #3e2e34;
-    --radius:             6px;
-
     font-family:    "JetBrainsMono Nerd Font", monospace;
     font-size:      12px;
     font-weight:    400;
@@ -27,9 +10,9 @@
 }
 
 window#waybar {
-    background-color: alpha(#1a1016, 0.92);
-    border-bottom:    1px solid var(--border);
-    color:            var(--fg);
+    background-color: rgba(26, 16, 22, 0.92);
+    border-bottom:    1px solid #3e2e34;
+    color:            #f0e6e6;
     transition:       background-color 0.3s ease;
 }
 
@@ -56,10 +39,10 @@ window#waybar.hidden {
 #tray,
 #custom-screenshot,
 #custom-power {
-    background-color: var(--bg-surface);
-    color:            var(--fg);
-    border-radius:    var(--radius);
-    border:           1px solid var(--border);
+    background-color: #221520;
+    color:            #f0e6e6;
+    border-radius:    6px;
+    border:           1px solid #3e2e34;
     padding:          2px 10px;
     margin:           4px 2px;
     transition:       all 0.2s ease;
@@ -74,20 +57,20 @@ window#waybar.hidden {
 #clock:hover,
 #mpris:hover,
 #custom-screenshot:hover {
-    background-color: var(--bg-hover);
-    border-color:     var(--accent-green);
-    color:            var(--fg);
+    background-color: #2e1e28;
+    border-color:     #4e6e4e;
+    color:            #f0e6e6;
 }
 
 /* ---- Workspaces ---- */
 #workspaces {
     padding:          2px 4px;
-    background-color: var(--bg-surface);
+    background-color: #221520;
 }
 
 #workspaces button {
     background:    transparent;
-    color:         var(--fg-muted);
+    color:         #6c7086;
     border:        none;
     border-radius: 4px;
     padding:       2px 6px;
@@ -97,27 +80,27 @@ window#waybar.hidden {
 }
 
 #workspaces button:hover {
-    background-color: var(--bg-hover);
-    color:            var(--fg-dim);
-    border-bottom:    2px solid var(--accent-green);
+    background-color: #2e1e28;
+    color:            #cdd6f4;
+    border-bottom:    2px solid #4e6e4e;
 }
 
 #workspaces button.active {
-    background-color: var(--bg-hover);
-    color:            var(--fg);
-    border-bottom:    2px solid var(--accent-green);
+    background-color: #2e1e28;
+    color:            #f0e6e6;
+    border-bottom:    2px solid #4e6e4e;
     font-weight:      700;
 }
 
 #workspaces button.urgent {
-    background-color: alpha(#ac6e7e, 0.15);
-    color:            var(--critical);
-    border-bottom:    2px solid var(--critical);
+    background-color: rgba(172, 110, 126, 0.15);
+    color:            #ac6e7e;
+    border-bottom:    2px solid #ac6e7e;
 }
 
 /* ---- Window title ---- */
 #window {
-    color:            var(--fg-muted);
+    color:            #6c7086;
     font-style:       italic;
     background-color: transparent;
     border-color:     transparent;
@@ -131,127 +114,127 @@ window#waybar.hidden {
 
 /* ---- Clock ---- */
 #clock {
-    color:            var(--fg);
+    color:            #f0e6e6;
     font-weight:      600;
     font-size:        13px;
-    background-color: var(--bg-surface);
-    border-color:     var(--accent-green);
+    background-color: #221520;
+    border-color:     #4e6e4e;
     letter-spacing:   0.03em;
     padding:          2px 16px;
 }
 
 /* ---- MPRIS ---- */
 #mpris {
-    color:        var(--accent-mauve);
-    border-color: alpha(#8e6e8e, 0.4);
+    color:        #8e6e8e;
+    border-color: rgba(142, 110, 142, 0.4);
     max-width:    220px;
 }
 
 #mpris.paused {
-    color:      var(--fg-muted);
+    color:      #6c7086;
     font-style: italic;
 }
 
 /* ---- Volume ---- */
 #pulseaudio {
-    color:        var(--accent-blue);
-    border-color: alpha(#6e8eae, 0.4);
+    color:        #6e8eae;
+    border-color: rgba(110, 142, 174, 0.4);
 }
 
 #pulseaudio.muted {
-    color:        var(--fg-muted);
-    border-color: var(--border);
+    color:        #6c7086;
+    border-color: #3e2e34;
 }
 
 /* ---- Network ---- */
 #network {
-    color:        var(--accent-green);
-    border-color: alpha(#4e6e4e, 0.4);
+    color:        #4e6e4e;
+    border-color: rgba(78, 110, 78, 0.4);
 }
 
 #network.disconnected {
-    color:        var(--fg-muted);
-    border-color: var(--border);
+    color:        #6c7086;
+    border-color: #3e2e34;
 }
 
 #network.linked {
-    color: var(--warning);
+    color: #aead8e;
 }
 
 /* ---- CPU ---- */
 #cpu {
-    color:        var(--fg-dim);
-    border-color: alpha(#cdd6f4, 0.2);
+    color:        #cdd6f4;
+    border-color: rgba(205, 214, 244, 0.2);
 }
 
 #cpu.warning {
-    color:        var(--warning);
-    border-color: alpha(#aead8e, 0.5);
+    color:        #aead8e;
+    border-color: rgba(174, 173, 142, 0.5);
 }
 
 #cpu.critical {
-    color:            var(--critical);
-    background-color: alpha(#ac6e7e, 0.1);
+    color:            #ac6e7e;
+    background-color: rgba(172, 110, 126, 0.1);
     animation:        blink 1s ease infinite;
 }
 
 /* ---- Memory ---- */
 #memory {
-    color:        var(--accent-mauve);
-    border-color: alpha(#8e6e8e, 0.4);
+    color:        #8e6e8e;
+    border-color: rgba(142, 110, 142, 0.4);
 }
 
 #memory.warning {
-    color: var(--warning);
+    color: #aead8e;
 }
 
 #memory.critical {
-    color:        var(--critical);
-    border-color: alpha(#ac6e7e, 0.5);
+    color:        #ac6e7e;
+    border-color: rgba(172, 110, 126, 0.5);
     animation:    blink 1.5s ease infinite;
 }
 
 /* ---- Temperature ---- */
 #temperature {
-    color:        var(--fg-dim);
-    border-color: alpha(#6eaeae, 0.3);
+    color:        #cdd6f4;
+    border-color: rgba(110, 174, 174, 0.3);
 }
 
 #temperature.critical {
-    color:            var(--critical);
-    background-color: alpha(#ac6e7e, 0.1);
-    border-color:     var(--critical);
+    color:            #ac6e7e;
+    background-color: rgba(172, 110, 126, 0.1);
+    border-color:     #ac6e7e;
     animation:        blink 1s ease infinite;
 }
 
 /* ---- Battery ---- */
 #battery {
-    color:        var(--accent-green);
-    border-color: alpha(#4e6e4e, 0.4);
+    color:        #4e6e4e;
+    border-color: rgba(78, 110, 78, 0.4);
 }
 
 #battery.charging,
 #battery.plugged {
-    color:        var(--accent-green);
-    border-color: var(--accent-green);
+    color:        #4e6e4e;
+    border-color: #4e6e4e;
 }
 
 #battery.warning:not(.charging) {
-    color:        var(--warning);
-    border-color: alpha(#aead8e, 0.5);
+    color:        #aead8e;
+    border-color: rgba(174, 173, 142, 0.5);
 }
 
 #battery.critical:not(.charging) {
-    color:            var(--critical);
-    background-color: alpha(#ac6e7e, 0.1);
-    border-color:     var(--critical);
+    color:            #ac6e7e;
+    background-color: rgba(172, 110, 126, 0.1);
+    border-color:     #ac6e7e;
     animation:        blink 0.8s ease infinite;
 }
 
 /* ---- Tray ---- */
 #tray {
-    background-color: var(--bg-surface);
-    border-color:     var(--border);
+    background-color: #221520;
+    border-color:     #3e2e34;
     padding:          2px 8px;
 }
 
@@ -261,22 +244,22 @@ window#waybar.hidden {
 
 #tray > .needs-attention {
     -gtk-icon-effect:  highlight;
-    background-color:  alpha(#ac6e7e, 0.15);
-    border-radius:     var(--radius);
+    background-color:  rgba(172, 110, 126, 0.15);
+    border-radius:     6px;
 }
 
 /* ---- Screenshot button ---- */
 #custom-screenshot {
-    color:        var(--accent-blue);
-    border-color: alpha(#6e8eae, 0.4);
+    color:        #6e8eae;
+    border-color: rgba(110, 142, 174, 0.4);
     font-size:    14px;
     padding:      2px 10px;
 }
 
 /* ---- Power button ---- */
 #custom-power {
-    color:        var(--accent-rose);
-    border-color: alpha(#8e4e5e, 0.4);
+    color:        #8e4e5e;
+    border-color: rgba(142, 78, 94, 0.4);
     font-size:    14px;
     padding:      2px 10px;
     margin-right: 6px;
@@ -284,9 +267,9 @@ window#waybar.hidden {
 }
 
 #custom-power:hover {
-    background-color: alpha(#ac6e7e, 0.15);
-    border-color:     var(--accent-rose-bright);
-    color:            var(--accent-rose-bright);
+    background-color: rgba(172, 110, 126, 0.15);
+    border-color:     #ac6e7e;
+    color:            #ac6e7e;
 }
 
 /* ---- Animations ---- */
@@ -296,14 +279,14 @@ window#waybar.hidden {
 
 /* ---- Tooltips ---- */
 tooltip {
-    background:    var(--bg);
-    border:        1px solid var(--border);
-    border-radius: var(--radius);
-    color:         var(--fg);
+    background:    #1a1016;
+    border:        1px solid #3e2e34;
+    border-radius: 6px;
+    color:         #f0e6e6;
 }
 
 tooltip label {
-    color:       var(--fg);
+    color:       #f0e6e6;
     padding:     4px 8px;
     font-family: "JetBrainsMono Nerd Font", monospace;
     font-size:   11px;

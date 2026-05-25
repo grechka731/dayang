@@ -60,21 +60,18 @@ fi
 install_hyprland() {
     step "Installing Hyprland (trying all methods)..."
 
-    # Method 1: pacman (Artix repo — fastest)
     if sudo pacman -S --noconfirm --needed hyprland 2>/dev/null; then
         ok "Hyprland installed via pacman."
         return 0
     fi
     warn "pacman method failed, trying galaxy repo..."
 
-    # Method 2: galaxy repo
     if sudo pacman -S --noconfirm --needed galaxy/hyprland 2>/dev/null; then
         ok "Hyprland installed via galaxy."
         return 0
     fi
     warn "galaxy method failed, trying AUR stable packages..."
 
-    # Method 3: AUR stable (not -git, avoids long compilation)
     local FAILED=0
     for pkg in hyprutils aquamarine hyprlang hyprcursor hyprland; do
         if ! yay -S --noconfirm --needed \
@@ -110,7 +107,6 @@ while IFS= read -r line || [ -n "$line" ]; do
     manager="${line%%:*}"
     package="${line#*:}"
 
-    # skip hyprland — already handled above
     [ "$package" = "hyprland" ] && continue
 
     case "$manager" in
@@ -179,55 +175,6 @@ step "Creating required directories..."
 mkdir -p "$HOME/Pictures/Screenshots"
 mkdir -p "$HOME/Pictures/Wallpapers"
 ok "Directories ready."
-
-# ---- rofi ----
-step "Setting up rofi config..."
-mkdir -p "$HOME/.config/rofi/launchers/type-7"
-mkdir -p "$HOME/.config/rofi/colors"
-
-if [ ! -f "$HOME/.config/rofi/config.rasi" ]; then
-cat > "$HOME/.config/rofi/config.rasi" << 'EOF'
-configuration {
-    modi:               "drun,run,window";
-    show-icons:         true;
-    drun-display-format: "{name}";
-    display-drun:       " Apps";
-    display-run:        " Run";
-    display-window:     "󰖯 Windows";
-    icon-theme:         "Papirus-Dark";
-    font:               "JetBrainsMono Nerd Font 11";
-}
-EOF
-fi
-
-cat > "$HOME/.config/rofi/colors/depressive-rose.rasi" << 'EOF'
-* {
-    bg:           #1a1016;
-    bg-surface:   #221520;
-    bg-hover:     #2e1e28;
-    fg:           #f0e6e6;
-    fg-muted:     #6c7086;
-    accent-green: #4e6e4e;
-    border:       #3e2e34;
-}
-EOF
-
-cat > "$HOME/.config/rofi/launchers/type-7/style-5.rasi" << 'EOF'
-@import "../../colors/depressive-rose.rasi"
-* { font: "JetBrainsMono Nerd Font 11"; background: transparent; text-color: @fg; }
-configuration { show-icons: true; icon-theme: "Papirus-Dark"; }
-window { width: 480px; background-color: @bg; border: 2px solid; border-color: @accent-green; border-radius: 12px; }
-mainbox { background-color: transparent; children: [ inputbar, listview ]; padding: 12px; spacing: 8px; }
-inputbar { background-color: @bg-surface; border-radius: 8px; border: 1px solid @border; children: [ prompt, entry ]; padding: 8px 12px; spacing: 8px; }
-prompt { color: @accent-green; }
-entry { color: @fg; placeholder: "Search..."; placeholder-color: @fg-muted; }
-listview { background-color: transparent; columns: 1; lines: 8; spacing: 2px; scrollbar: false; }
-element { background-color: transparent; border-radius: 6px; padding: 6px 10px; spacing: 8px; children: [ element-icon, element-text ]; }
-element selected { background-color: @bg-hover; border: 1px solid @accent-green; }
-element-icon { size: 24px; background-color: transparent; }
-element-text { background-color: transparent; color: @fg; vertical-align: 0.5; }
-EOF
-ok "rofi theme installed."
 
 # ---- Rust ----
 if command -v rustup &>/dev/null; then
